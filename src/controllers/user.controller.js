@@ -1,5 +1,5 @@
 import { User } from "../models/user.model.js";
-import { uploadFile } from "../utils/cloudinary.js";
+import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const registerUser = async (req, res) => {
   const { username, email, fullName, password } = req.body;
@@ -27,9 +27,8 @@ export const registerUser = async (req, res) => {
     return res.status(400).send("Avatar is required");
   }
 
-  // fix name to uploadToCloudinary and modify it with return of null
-  const avatar = await uploadFile(localAvatarPath);
-  const coverImage = await uploadFile(localCoverPath);
+  const avatar = await uploadToCloudinary(localAvatarPath);
+  const coverImage = await uploadToCloudinary(localCoverPath);
 
   console.log("cloudianry avatar :", avatar);
   console.log("cloudianry cover :", coverImage);
