@@ -15,4 +15,10 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
 
+// routes imports
+import user from "./routes/user.route.js";
+
+//routes middleware
+app.use("/api/v1/user", user);
+
 export { app };
