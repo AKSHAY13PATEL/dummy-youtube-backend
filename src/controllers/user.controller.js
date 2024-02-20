@@ -19,19 +19,12 @@ export const registerUser = async (req, res) => {
   const localAvatarPath = req.files.avatar && req.files.avatar[0]?.path;
   const localCoverPath = req.files.coverImage && req.files.coverImage[0]?.path;
 
-  console.log(req.files);
-  console.log("multer avatar :", localAvatarPath);
-  console.log("multer cover :", localCoverPath);
-
   if (!localAvatarPath) {
     return res.status(400).send("Avatar is required");
   }
 
   const avatar = await uploadToCloudinary(localAvatarPath);
   const coverImage = await uploadToCloudinary(localCoverPath);
-
-  console.log("cloudianry avatar :", avatar);
-  console.log("cloudianry cover :", coverImage);
 
   if (!avatar) {
     return res.status(500).send("Could not upload avatar");
