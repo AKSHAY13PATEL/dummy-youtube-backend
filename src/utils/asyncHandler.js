@@ -1,4 +1,4 @@
-export default function asyncMiddleware(routeHandler) {
+export default function asyncHandler(routeHandler) {
   return async (req, res, next) => {
     try {
       await routeHandler(req, res);

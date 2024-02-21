@@ -1,10 +1,10 @@
-import asyncMiddleware from "../middlewares/async.middleware.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 
-export const registerUser = asyncMiddleware(async (req, res, next) => {
+export const registerUser = asyncHandler(async (req, res, next) => {
   const { username, email, fullName, password } = req.body;
 
   let data = [username, email, fullName, password];
