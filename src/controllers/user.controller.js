@@ -1,5 +1,7 @@
 import asyncMiddleware from "../middlewares/async.middleware.js";
 import { User } from "../models/user.model.js";
+import ApiError from "../utils/ApiError.js";
+import ApiResponse from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 
 export const registerUser = asyncMiddleware(async (req, res, next) => {
@@ -7,28 +9,33 @@ export const registerUser = asyncMiddleware(async (req, res, next) => {
 
   let data = [username, email, fullName, password];
   if (data.some((e) => e === "")) {
-    return res.status(400).send("Fields can not be empty");
+    return new ApiError(res, 400, "Fields can not be empty", "missing details");
   }
 
   let existingUser = await User.findOne({
     $or: [{ username: username }, { email: email }],
   });
   if (existingUser) {
-    return res.status(400).send("user already exist");
+    return new ApiError(res, 409, "user already exist", "conflict");
   }
 
   const localAvatarPath = req.files.avatar && req.files.avatar[0]?.path;
   const localCoverPath = req.files.coverImage && req.files.coverImage[0]?.path;
 
   if (!localAvatarPath) {
-    return res.status(400).send("Avatar is required");
+    return new ApiError(res, 400, "Avatar is required", "missing details");
   }
 
   const avatar = await uploadToCloudinary(localAvatarPath);
   const coverImage = await uploadToCloudinary(localCoverPath);
 
   if (!avatar) {
-    return res.status(500).send("Could not upload avatar");
+    return new ApiError(
+      res,
+      500,
+      "Could not upload avatar",
+      "internal server error"
+    );
   }
 
   const user = await User.create({
@@ -46,7 +53,19 @@ export const registerUser = asyncMiddleware(async (req, res, next) => {
   });
 
   if (!newUser) {
-    return res.status(500).send("something went wrong while registering user");
+    return new ApiError(
+      res,
+      500,
+      "something went wrong while registering user",
+      "internal server error"
+    );
   }
-  return res.status(201).send(newUser);
+  return new ApiResponse(
+    res,
+    true,
+    201,
+    "user created successfully",
+    null,
+    newUser
+  );
 });
