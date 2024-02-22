@@ -4,6 +4,7 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { uploadToCloudinary } from "../utils/cloudinary.js";
 import { generateAccessAndRefreshToken } from "../utils/generateAccessAndRefreshToken.js";
+import jwt from "jsonwebtoken";
 
 export const registerUser = asyncHandler(async (req, res, next) => {
   const { username, email, fullName, password } = req.body;
@@ -112,7 +113,9 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 
   res
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    .cookie("refreshToken", refreshToken, {
+      expires: new Date(Date.now() + 60 * 60 * 1000),
+    })
     .json({
       success: true,
       message: "Login Successful",
@@ -145,4 +148,48 @@ export const logoutUser = asyncHandler(async (req, res) => {
       error: null,
       data: null,
     });
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+  const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+  if (!refreshToken)
+    return new ApiError(
+      res,
+      401,
+      "Refresh token is required",
+      "Unauthorized client request"
+    );
+
+  const { _id } = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+  const user = await User.findById(_id);
+
+  if (user?.refreshToken !== refreshToken)
+    return new ApiError(
+      res,
+      401,
+      "Invalid refresh token",
+      "Unauthorised request"
+    );
+
+  // FIX: this function does not give new refresh token
+  // because there is already existing refresh token in DB
+  const { accessToken, refreshToken: newRefreshToken } =
+    await generateAccessAndRefreshToken(user._id);
+
+  const options = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return res.cookie("accessToken", accessToken, options).json({
+    success: true,
+    message: "Token refreshed successful",
+    error: null,
+    data: {
+      accessToken,
+      refreshToken: newRefreshToken,
+    },
+  });
 });
