@@ -105,8 +105,9 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   });
 
   // send cookies with access and refresh token
+  // access token expiry : 1 hr. Refresh token : 1 day
   const options = {
-    expires: new Date(Date.now() + 60 * 1000),
+    expires: new Date(Date.now() + 60 * 60 * 1000),
     httpOnly: true,
     secure: true,
   };
@@ -114,7 +115,8 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   res
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, {
-      expires: new Date(Date.now() + 60 * 60 * 1000),
+      ...options,
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     })
     .json({
       success: true,
@@ -202,4 +204,71 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
       "internal server error"
     );
   }
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return new ApiError(res, 400, "Fields are required", "bad request");
+  }
+
+  // find logged in user
+  const user = await User.findOne(req.user._id);
+
+  // validate old password
+  const isValidPassword = await user.isPasswordCorrect(oldPassword);
+  if (!isValidPassword) {
+    return new ApiError(res, 400, "old password is not correct", "bad request");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return new ApiResponse(
+    res,
+    true,
+    200,
+    "password changes successfully",
+    null,
+    null
+  );
+});
+
+export const updateUserDetails = asyncHandler(async (req, res) => {
+  const { fullName, email } = req.body;
+
+  // updation details object
+  const newData = {
+    fullName,
+    email,
+  };
+
+  if (!fullName || !email)
+    return new ApiError(
+      res,
+      400,
+      "User updation details are required",
+      "bad request"
+    );
+
+  // if user request avatar update
+  if (req.files && "avatar" in req.files) {
+    const avatar = await uploadToCloudinary(req.files.avatar[0]?.path);
+    newData.avatar = avatar.url;
+  }
+
+  // if user request coverimage update
+  if (req.files && "coverImage" in req.files) {
+    const coverImage = await uploadToCloudinary(req.files.coverImage[0]?.path);
+    newData.coverImage = coverImage.url;
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, newData, {
+    new: true,
+  }).select({ refreshToken: 0, password: 0, _id: 0 });
+
+  return new ApiResponse(res, true, 200, "User updated successfully", null, {
+    user: updatedUser,
+  });
 });
