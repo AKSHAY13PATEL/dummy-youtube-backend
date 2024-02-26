@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   changePassword,
+  getUserChannelProfile,
   loginUser,
   logoutUser,
   refreshAccessToken,
@@ -39,5 +40,8 @@ router.route("/change-password").patch(isLoggedIn, changePassword);
 router.route("/testing").get((req, res) => {
   return res.send("Testing route");
 });
+
+// user channel profile
+router.route("/profile/:username").get(isLoggedIn, getUserChannelProfile);
 
 export default router;

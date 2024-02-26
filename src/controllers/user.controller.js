@@ -272,3 +272,70 @@ export const updateUserDetails = asyncHandler(async (req, res) => {
     user: updatedUser,
   });
 });
+
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
+  // username and channel name both are same
+  // because both are unique
+  const username = req.params.username?.toLowerCase();
+  const requestingUserID = req.user._id;
+
+  if (!username)
+    return new ApiError(res, 400, "username is required", "bad request");
+
+  const pipeline = [
+    {
+      $match: {
+        username: username,
+      },
+    },
+    {
+      $lookup: {
+        from: "subscribers",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+    {
+      $lookup: {
+        from: "subscribers",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribed",
+      },
+    },
+    {
+      $addFields: {
+        totalSubscribers: {
+          $size: "$subscribers",
+        },
+        totalSubscribedTo: {
+          $size: "$subscribed",
+        },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [requestingUserID, "$subscribers.subscriber"] },
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        password: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        refreshToken: 0,
+        subscribers: 0,
+        subscribed: 0,
+      },
+    },
+  ];
+
+  const channel = await User.aggregate(pipeline);
+
+  return new ApiResponse(res, true, 200, "", null, {
+    channel: channel[0],
+  });
+});
