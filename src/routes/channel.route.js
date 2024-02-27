@@ -7,7 +7,7 @@ import {
 
 const router = Router();
 
-router.route("/channel").post(createNewChannel);
+router.route("/channel").post(isLoggedIn, createNewChannel);
 
 router.route("/channel/:channelID").get(getChannelDetails);
 
