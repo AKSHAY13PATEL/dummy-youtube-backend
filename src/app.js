@@ -29,9 +29,9 @@ import subscriber from "./routes/subscriber.route.js";
 import channel from "./routes/channel.route.js";
 
 //routes middleware
-app.use("/api/v1/user", user);
-app.use("/api/v1/subscriber", subscriber);
-app.use("/api/v1/channel", channel);
+app.use("/api/v1", user);
+app.use("/api/v1", subscriber);
+app.use("/api/v1", channel);
 
 // error handling middleware
 app.use(error);

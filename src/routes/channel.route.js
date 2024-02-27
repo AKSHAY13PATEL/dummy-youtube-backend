@@ -7,8 +7,8 @@ import {
 
 const router = Router();
 
-router.route("/").post(createNewChannel);
+router.route("/channel").post(createNewChannel);
 
-router.route("/:channelID").get(getChannelDetails);
+router.route("/channel/:channelID").get(getChannelDetails);
 
 export default router;
