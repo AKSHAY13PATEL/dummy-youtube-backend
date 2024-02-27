@@ -23,9 +23,14 @@ const videoSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    owner: {
+    uploader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    channel: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Channel",
     },
   },
   { timestamps: true }
