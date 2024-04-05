@@ -1,3 +1,3 @@
-# dummy youtube app
+# Youtube clone app
 
-This is dummy youtube app backend
+This is youtube clone app backend
