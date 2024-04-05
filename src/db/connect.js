@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { DB_NAME } from "../constants.js";
+import { dbLogger } from "../utils/logger.js";
 
 const connectWithDb = async () => {
   try {

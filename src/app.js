@@ -18,6 +18,12 @@ app.use(express.json());
 app.use(express.static("public"));
 app.use(cookieParser());
 
+// log request only in development environment
+if (app.get("env") == "development") {
+  app.use(morgan("tiny"));
+  console.log("Morgan enabled!");
+}
+
 app.get("/home", async (req, res) => {
   new ApiResponse(res, true, 200, "all goods", null, { fullname: "hello" });
   // new ApiError(res, 500, "error message", "internal server error");
@@ -27,6 +33,7 @@ app.get("/home", async (req, res) => {
 import user from "./routes/user.route.js";
 import subscriber from "./routes/subscriber.route.js";
 import channel from "./routes/channel.route.js";
+import morgan from "morgan";
 
 //routes middleware
 app.use("/api/v1", user);
